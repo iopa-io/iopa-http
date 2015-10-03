@@ -20,16 +20,11 @@ const iopa = require('iopa'),
   
 const constants = iopa.constants,
   IOPA = constants.IOPA,
-  SERVER = constants.SERVER
+  SERVER = constants.SERVER,
+  HTTP = require('../common/constants.js').HTTP
 
-const  packageVersion = require('../../package.json').version;
-const HTTP = {
-  CACHE_CONTROL: "private, s-maxage=0, max-age=0, must-revalidate",
-  SERVER: "iopa/" + packageVersion,
-  SESSIONCLOSE: "http.SessionClose",
-  CAPABILITY: "urn:io.iopa:http"
-}
-
+const packageVersion = require('../../package.json').version;
+ 
  /**
  * IOPA Middleware for Hypertext Transfer Protocol (HTTP) protocol
  *
@@ -39,27 +34,44 @@ const HTTP = {
  * @public
  */
 function IopaHttp(app) {
-  this.app = app;
-  this._factory = new iopa.Factory();
+    app.properties[SERVER.Capabilities][HTTP.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][HTTP.CAPABILITY][SERVER.Version] = packageVersion;
+    app.properties[SERVER.Capabilities][HTTP.CAPABILITY][IOPA.Protocol] = HTTP.PROTOCOLVERSION;
  }
 
 /**
- * @method invoke
+ * channel method called for each inbound transport session channel
+ * 
+ * @method channel
  * @this DiscoveryServerIopaWire 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.channel = function IopaHttp_channel(channelContext, next) {
     channelContext[IOPA.Events].on(IOPA.EVENTS.Request, function(context){
-         context.response[IOPA.Body].on("start", IopaHttp_replyStart.bind(this, context));
          context.using(next.invoke);
      })
-     
+         
       return next()
       .then(httpFormat.inboundParseMonitor.bind(this, channelContext, null))
 }
 
 /**
+ * channel method called for each inbound message
+ * 
+ * @method invoke
+ * @this DiscoveryServerIopaWire 
+ * @param context IOPA context properties dictionary
+ * @param next the next IOPA AppFunc in pipeline 
+ */
+IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
+    context.response[IOPA.Body].on("start", IopaHttp_messageDefaults.bind(this, context.response));   
+    return next()
+}
+
+/**
+ * connect method called for each outbound client.connect() channelContext creation
+ * 
  * @method connect
  * @this DiscoveryServerIopaWire 
  * @param context IOPA context properties dictionary
@@ -72,39 +84,36 @@ IopaHttp.prototype.connect = function IopaHttp_connect(channelContext, next) {
   return next();
 };
 
-
-
 /**
+ * dispatch method called for each outbound context write
+ * 
  * @method dispatch
  * @this DiscoveryServerIopaWire 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.dispatch = function IopaHttp_dispatch(context, next) {
+    IopaHttp_messageDefaults(context);
     return next().then(function () {
-       return httpFormat.write(context);
+       return httpFormat.outboundWrite(context);
      });
 };
 
+// PRIVATE METHODS
+
 /**
- * Private method to send response packet
- * Triggered on data or finish events
+ * Private method to create message defaults for each new packet
  * 
- * @method IopaHttp_reply
+ * @method IopaHttp_messageDefaults
  * @object ctx IOPA context dictionary
  * @private
  */
-function IopaHttp_replyStart(context) {
-        
-  var response = context.response;
-  response[IOPA.Method] = null;
-
-  response[IOPA.StatusCode] = 200;
-  response[IOPA.ReasonPhrase] = "OK";
-  var headers = response[IOPA.Headers];
-  headers['CACHE-CONTROL'] = headers['CACHE-CONTROL'] || HTTP.CACHE_CONTROL;
-  headers['DATE'] = headers['DATE'] || new Date().toUTCString();
+function IopaHttp_messageDefaults(context) { 
+  context[IOPA.Headers]['cache-control'] =  context[IOPA.Headers]['cache-control'] || HTTP.CACHE_CONTROL;
+  context[IOPA.Headers]['server'] =  context[IOPA.Headers]['server'] || HTTP.SERVER;
 };
+ 
+ // MODULE EXPORTS
  
  module.exports = IopaHttp;
  

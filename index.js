@@ -15,4 +15,8 @@
  */
 
 var Server = require('./src/server/httpServer.js');
+var httpFormat = require('./src/common/httpFormat.js');
+var HTTP = require('./src/common/constants.js').HTTP;
+
 module.exports = Server;
+module.exports.protocol = {inboundParseMonitor: httpFormat.inboundParseMonitor, outboundWrite: httpFormat.outboundWrite, constants: HTTP}

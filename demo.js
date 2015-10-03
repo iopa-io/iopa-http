@@ -22,22 +22,18 @@ global.Promise = require('bluebird');
 
 const iopa = require('iopa'),
   IOPA = iopa.constants.IOPA,
-  SERVER = iopa.constants.SERVER,
+  SERVER = iopa.constants.SERVER
   
-packageVersion = require('./package.json').version;
-
 const IopaTCP =  require('iopa-tcp'),
-    IopaHTTP = require('./index.js')
-    
-const iopaMessageLogger = require('iopa-logger').MessageLogger
-
+    IopaHTTP = require('./index.js'),
+    IopaMessageLogger = require('iopa-logger').MessageLogger
 
 /**
  * Main Application Logic
  */
  
 var app = new iopa.App();
-app.use(iopaMessageLogger);
+app.use(IopaMessageLogger);
 app.use(IopaHTTP);
 
 app.use(function (context, next) {

@@ -29,9 +29,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * IOPA CoAP SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED
  * ********************************************************* */
 
-const THISMIDDLEWARE = {CAPABILITY: "urn:io.iopa:http", PROTOCOLVERSION: "1.1"},
-       packageVersion = require('../../package.json').version;
-
 /**
  * CoAP IOPA Server includes CoAP Client
  * 
@@ -43,11 +40,12 @@ const THISMIDDLEWARE = {CAPABILITY: "urn:io.iopa:http", PROTOCOLVERSION: "1.1"},
 module.exports = function DeviceServer(app) {
    _classCallCheck(this, DeviceServer);
       
-    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
-    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
-    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][IOPA.Protocol] = THISMIDDLEWARE.PROTOCOLVERSION;
-    
+     
     app.use(iopaHttpMiddleware);
+      
+    // always use IOPA Pipeline middleware to match response records to associated request
     app.use(iopaPipeline);
-     app.use(iopaSend);
+    
+    // add .send helper methods
+    app.use(iopaSend);
 }

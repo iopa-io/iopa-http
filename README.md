@@ -7,11 +7,12 @@
 [![NPM](https://nodei.co/npm/iopa-http.png?downloads=true)](https://nodei.co/npm/iopa-coap/)
 
 ## About
-`iopa-http` is an API-First fabric for the Internet of Thing (IoT), based on the Internet of Protocols Alliance (IOPA) specification 
+`iopa-http` is an API-First fabric for the Internet of Things (IoT) and for Microservices Container-Based Architectures (MCBA)
+based on the Internet of Protocols Alliance (IOPA) specification 
 
 It servers HTTP messages in standard IOPA format and allows existing middleware for Connect, Express and limerun projects to consume/send each mesage.
 
-Written in native javascript for maximum performance and portability to constrained devices.   If you prefer to ues the core Node.js 'http' transport, then
+Written in native javascript for maximum performance and portability to constrained devices and services.   If you prefer to use the core Node.js 'http' transport, then
 see the package [`iopa-http`](https://nodei.co/npm/iopa-connect/).
 
 ## Status
