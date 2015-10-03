@@ -145,7 +145,7 @@ HTTPParser.prototype.finish = function () {
 // PRIVATE METHODS FOR MAJOR PARSING MILESTONES
 
 HTTPParser.prototype._onHeadersComplete = function() {
-    this.context[IOPA.Scheme] = IOPA.SCHEMES.HTTP;
+    this.context[IOPA.Scheme] = this.context[IOPA.Scheme] || IOPA.SCHEMES.HTTP;
     this.context[IOPA.Body] = new iopaStream.IncomingStream();
     
     var response = this.context.response;
