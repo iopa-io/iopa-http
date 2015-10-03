@@ -21,7 +21,7 @@ const constants = require('iopa').constants,
 
 const iopaHttpMiddleware = require('../middleware/iopaHTTP.js'),
     iopaSend = require('iopa-common-middleware').ClientSend,
-    iopaPipeline = require('../middleware/iopaPipelineMatch.js')
+    iopaPipeline = require('iopa-common-middleware').Pipeline
      
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
