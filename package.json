@@ -1,0 +1,58 @@
+{
+  "name": "iopa-http",
+  "main": "index.js",
+  "description": "API-first Hypertext Transfer Protocol (HTTP) transport for the Internet of Things (IoT), based on the Internet of Protocols Alliance (IOPA) specification",
+  "author": "iopa <build@iopa.io>",
+  "license": "Apache-2.0",
+  "maintainers": [
+    {
+      "name": "iopa",
+      "email": "build@iopa.io"
+    }
+  ],
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iopa-io/iopa-http.git"
+  },
+  "dependencies": {
+    "iopa": "^1.3.0",
+    "iopa-common-middleware": "^1.3.0",
+    "iopa-common-stream": "^1.3.0"
+   },
+  "keywords": [
+    "iot",
+    "iotivity",
+    "IOC",
+    "IOPA",
+    "limerun",
+    "iopa",
+    "owin",
+    "middleware",
+    "node-coap",
+    "iopa-coap",
+    "http",
+    "app",
+    "demo",
+    "mac",
+    "osx",
+    "promise",
+    "fabric"
+  ],
+  "engines": {
+    "node": ">= 4.0"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec test",
+    "quick": "git add . -A && git commit --allow-empty -m 'dev test' && npm version patch && npm publish",
+    "typings": "tsd reinstall --overwrite --clean --config tools/tsd.json && tsd link"
+  },
+  "devDependencies": {
+    "iopa-tcp": "^1.3.0",
+    "bluebird": "^2.10.0",
+    "iopa-logger": "^1.3.0",
+    "mocha": "^2.3.2",
+    "mocha-junit-reporter": "^1.6.1",
+    "should": "^7.1.0"
+  }
+}
