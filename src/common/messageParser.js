@@ -103,7 +103,6 @@ function HTTPParser(channelContext, context) {
  */
 HTTPParser.prototype.execute = function (chunk) {
   _classCallCheck(this, HTTPParser);
-  console.log(chunk.toString());
   var start = 0;
   var length = chunk.length;
 

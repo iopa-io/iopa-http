@@ -20,43 +20,32 @@
  
 global.Promise = require('bluebird');
 
-const iopa = require('iopa'),
-  IOPA = iopa.constants.IOPA,
-  SERVER = iopa.constants.SERVER
+const iopa = require('iopa')
   
 const IopaTCP =  require('iopa-tcp'),
     IopaHTTP = require('./index.js'),
     IopaMessageLogger = require('iopa-logger').MessageLogger
-
-/**
- * Main Application Logic
- */
- 
+  
 var app = new iopa.App();
+app.use(IopaTCP);
 app.use(IopaMessageLogger);
 app.use(IopaHTTP);
 
 app.use(function (context, next) {
-  context.log.info("[DEMO] APP USE " + context["iopa.Method"] + " " + context["iopa.Path"]);
   context.response["iopa.Body"].end("<HTML><HEAD></HEAD><BODY>Hello World</BODY>");
   return next();
 });
 
-var server = IopaTCP.createServer(app.build());
+var server = app.createServer("tcp:");
 server.listen()
-    .then(function () {
-      console.log("Server is listening on port " + server.port);
-      
-     return server.connect("http://localhost:" + server.port)
-    })
-    .then(function(client) {
-       console.log("Client is on port " + client[SERVER.LocalPort]);
-        return client.send("/", "GET");})
-         .then(function (response) {
-         console.log("[TEST] /projector RESPONSE ");
-         response["iopa.Body"].pipe(process.stdout);
-         server.close();
-            });
+  .then(function () {
+      return server.connect("http://localhost:" + server["server.LocalPort"]);})
+  .then(function(client) {
+      return client.send("/", "GET");})
+  .then(function (response) {
+      response["iopa.Body"].pipe(process.stdout);
+      server.close();
+    });
          
      
    
