@@ -78,9 +78,7 @@ IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.connect = function IopaHttp_connect(channelContext, next) {
-  channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = null;
-  channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing = [];
-  httpFormat.inboundParseMonitor(channelContext, null);  
+   httpFormat.inboundParseMonitor(channelContext, null);  
   return next();
 };
 

@@ -22,8 +22,7 @@ const constants = require('iopa').constants,
 const HTTPParser = require('./messageParser.js'),
       OutgoingHTTPMessageStream = require('./messageStream.js').OutgoingHTTPMessageStream;
 
-
- /**
+/**
  * IOPA InboundParseMonitor converts inbound HTTP requests and inbound HTTP responses into IOPA Request and Response contexts
  *
  * @method inboundParseMonitor
@@ -55,40 +54,43 @@ module.exports.inboundParseMonitor = function HTTPFormat_parse(channelContext, c
  * @returns Promise fulfilled when the write is complete (which may be a while if other requests are ahead in the queue for this channel)
  * @public
  */
-module.exports.outboundWrite = function HTTPFormat_outboundWrite(context)
-{
-  
-  var p = new Promise(function(resolve, reject){
-      if (!context[SERVER.Capabilities][HTTP.CAPABILITY].resolve)
-        context[SERVER.Capabilities][HTTP.CAPABILITY].resolve = resolve;
-    })
-  var channelContext = context[SERVER.ParentContext]; 
-  if (channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing == null)
-    {
-     // PROCESS IMMEDIATELY
-       channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = context;
-      
-        var outgoingBodyStream = new OutgoingHTTPMessageStream(context);
-        outgoingBodyStream.on("finish", _HttpFormat_outgoingComplete.bind(this, channelContext, context))
-        
-        if (context[IOPA.Body])
-          {
-            if (typeof context[IOPA.Body] !== 'string' && !(context[IOPA.Body] instanceof Buffer)) 
-                context[IOPA.Body].pipe(outgoingBodyStream);
-            else
-                outgoingBodyStream.end(context[IOPA.Body]);
-    
-          }
-          else
-            outgoingBodyStream.end();
+module.exports.outboundWrite = function HTTPFormat_outboundWrite(context) {
+
+  var p = new Promise(function (resolve, reject) {
+    if (!context[SERVER.Capabilities][HTTP.CAPABILITY].resolve)
+      context[SERVER.Capabilities][HTTP.CAPABILITY].resolve = resolve;
+  })
+  var channelContext = context[SERVER.ParentContext];
+
+  if (!("outgoing" in channelContext[SERVER.Capabilities][HTTP.CAPABILITY]))
+  {
+    channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = null;
+    channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing = [];
+  }
+
+  if (channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing == null) {
+    // PROCESS IMMEDIATELY
+    channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = context;
+
+    var outgoingBodyStream = new OutgoingHTTPMessageStream(context);
+    outgoingBodyStream.on("finish", _HttpFormat_outgoingComplete.bind(this, channelContext, context))
+
+    if (context[IOPA.Body]) {
+      if (typeof context[IOPA.Body] !== 'string' && !(context[IOPA.Body] instanceof Buffer))
+        context[IOPA.Body].pipe(outgoingBodyStream);
+      else
+        outgoingBodyStream.end(context[IOPA.Body]);
+
     }
     else
-    {
-      channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.push(context);
-    }
-    
-    return p;
-    
+      outgoingBodyStream.end();
+  }
+  else {
+    channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.push(context);
+  }
+
+  return p;
+
 }
 
 /**
