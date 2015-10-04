@@ -28,7 +28,8 @@ const iopa = require('iopa'),
 
 const constants = iopa.constants,
     IOPA = constants.IOPA,
-    SERVER = constants.SERVER;
+    SERVER = constants.SERVER,
+    HTTP = require('./constants.js').HTTP
 
 const util = require('util'),
     url = require('url'),
@@ -92,7 +93,7 @@ function OutgoingHTTPMessageStream(context) {
 
   this._last = false;
   this.chunkedEncoding = false;
-  this.shouldKeepAlive = true;
+  this.shouldKeepAlive = (context[HTTP.ShouldKeepAlive] == null) ? true : context[HTTP.ShouldKeepAlive];
   this.useChunkedEncodingByDefault = true;
   this.sendDate = true;
   this._removedHeader = {};

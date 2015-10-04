@@ -19,8 +19,8 @@ const constants = require('iopa').constants,
     SERVER = constants.SERVER,
     HTTP = require('./constants.js').HTTP
 
-const HTTPParser = require('./messageParser.js'),
-      OutgoingHTTPMessageStream = require('./messageStream.js').OutgoingHTTPMessageStream;
+const HTTPParser = require('./incomingParser.js'),
+      OutgoingHTTPMessageStream = require('./outgoingStream.js').OutgoingHTTPMessageStream;
 
 /**
  * IOPA InboundParseMonitor converts inbound HTTP requests and inbound HTTP responses into IOPA Request and Response contexts

@@ -32,7 +32,7 @@ const constants = iopa.constants,
     SERVER = constants.SERVER,
     HTTP = require('./constants.js').HTTP
 
-const OutgoingHTTPMessageStream = require('./messageStream.js').OutgoingHTTPMessageStream;
+const OutgoingHTTPMessageStream = require('./outgoingStream.js').OutgoingHTTPMessageStream;
 
 const util = require('util'),
     url = require('url'),
@@ -76,7 +76,7 @@ function HTTPParser(channelContext, context) {
  
   this.context = context || this._createNewRequest();
   this.context[HTTP.SkipBody] = false;
-  this.context[HTTP._shouldKeepAlive] = true;
+  this.context[HTTP.ShouldKeepAlive] = true;
   this.context[IOPA.Trailers] =[];
    
   this._state = 'HTTP_LINE';
@@ -154,6 +154,7 @@ HTTPParser.prototype._onHeadersComplete = function() {
     response[IOPA.ReasonPhrase] = "OK";
     response[IOPA.Protocol] = this.context[IOPA.Protocol];
     response[IOPA.Scheme] = this.context[IOPA.Scheme];
+    response[HTTP.ShouldKeepAlive] = this.context[HTTP.ShouldKeepAlive];
       
     if (this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming == null)
     {
@@ -272,7 +273,7 @@ HTTPParser.prototype._shouldKeepAlive = function () {
   } else if (this._connection.indexOf('keep-alive') === -1) {
     return false;
   }
-  if (this._contentLength !== null || this._isChunked) { 
+  if (this._contentLength !== null || this._isChunked) {
     return true;
   }
   return false;
@@ -382,7 +383,7 @@ HTTPParser.prototype.HEADER = function () {
       }
     }
     
-    this.context[HTTP._shouldKeepAlive] = this._shouldKeepAlive();
+    this.context[HTTP.ShouldKeepAlive] = this._shouldKeepAlive();
 
     var skipBody = this._onHeadersComplete();
     
