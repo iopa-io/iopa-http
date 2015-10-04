@@ -20,7 +20,7 @@ const  packageVersion = require('../../package.json').version;
 
 const HTTP = {
   CACHE_CONTROL: "private, s-maxage=0, max-age=0, must-revalidate",
-  SERVER: "iopa/" + packageVersion,
+  SERVER: "iopa-http/" + packageVersion,
   SESSIONCLOSE: "http.SessionClose",
   PROTOCOLVERSION: "1.1",
   

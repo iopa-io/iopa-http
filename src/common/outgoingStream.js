@@ -96,8 +96,7 @@ function OutgoingHTTPMessageStream(context) {
   this.shouldKeepAlive = (context[HTTP.ShouldKeepAlive] == null) ? true : context[HTTP.ShouldKeepAlive];
   this.useChunkedEncodingByDefault = true;
   this.sendDate = true;
-  this._removedHeader = {};
-
+  
   this._contentLength = null;
   this._hasBody = true;
   this._trailer = '';
@@ -411,10 +410,7 @@ OutgoingHTTPMessageStream.prototype._writeHeadCommon = function(firstLine) {
   }
 
   // keep-alive logic
-  if (this._removedHeader.connection) {
-    this._last = true;
-    this.shouldKeepAlive = false;
-  } else if (state.sentConnectionHeader === false) {
+ if (state.sentConnectionHeader === false) {
     var shouldSendKeepAlive = this.shouldKeepAlive &&
         (state.sentContentLengthHeader ||
          this.useChunkedEncodingByDefault ||
@@ -437,18 +433,14 @@ OutgoingHTTPMessageStream.prototype._writeHeadCommon = function(firstLine) {
       this._last = true;
     } else {
       if (!state.sentTrailer &&
-          !this._removedHeader['content-length'] &&
           typeof this._contentLength === 'number') {
             if ( (this._contentLength > 0) || ((this.context.scheme === IOPA.SCHEMES.HTTP) || (this.context.scheme === IOPA.SCHEMES.HTTPS)))
         state.messageHeader += 'Content-Length: ' + this._contentLength +
                                '\r\n';
-      } else if (!this._removedHeader['transfer-encoding']) {
+      } else  {
         state.messageHeader += 'Transfer-Encoding: chunked\r\n';
         this.chunkedEncoding = true;
-      } else {
-        // We should only be able to get here if both Content-Length and
-        // Transfer-Encoding are removed by the user.
-       }
+      } 
     }
   }
 
