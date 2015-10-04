@@ -439,6 +439,7 @@ OutgoingHTTPMessageStream.prototype._writeHeadCommon = function(firstLine) {
       if (!state.sentTrailer &&
           !this._removedHeader['content-length'] &&
           typeof this._contentLength === 'number') {
+            if ( (this._contentLength > 0) || ((this.context.scheme === IOPA.SCHEMES.HTTP) || (this.context.scheme === IOPA.SCHEMES.HTTPS)))
         state.messageHeader += 'Content-Length: ' + this._contentLength +
                                '\r\n';
       } else if (!this._removedHeader['transfer-encoding']) {
