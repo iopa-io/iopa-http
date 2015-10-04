@@ -107,8 +107,8 @@ IopaHttp.prototype.dispatch = function IopaHttp_dispatch(context, next) {
  * @private
  */
 function IopaHttp_messageDefaults(context) { 
-  context[IOPA.Headers]['cache-control'] =  context[IOPA.Headers]['cache-control'] || HTTP.CACHE_CONTROL;
-  context[IOPA.Headers]['server'] =  context[IOPA.Headers]['server'] || HTTP.SERVER;
+  context[IOPA.Headers]['Cache-Control'] =  context.getHeader('cache-control') || HTTP.CACHE_CONTROL;
+  context[IOPA.Headers]['Server'] =  context.getHeader('server') || HTTP.SERVER;
 };
  
  // MODULE EXPORTS
