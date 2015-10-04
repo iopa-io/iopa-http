@@ -423,7 +423,8 @@ OutgoingHTTPMessageStream.prototype._writeHeadCommon = function(firstLine) {
       state.messageHeader += 'Connection: keep-alive\r\n';
     } else {
       this._last = true;
-      state.messageHeader += 'Connection: close\r\n';
+      if ((this.context.scheme === IOPA.SCHEMES.HTTP) || (this.context.scheme === IOPA.SCHEMES.HTTPS))
+        state.messageHeader += 'Connection: close\r\n';
     }
   }
 
