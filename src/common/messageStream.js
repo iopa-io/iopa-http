@@ -320,15 +320,20 @@ function _streamUncorkNT(rawStream) {
     rawStream.uncork();
 }
 
-OutgoingHTTPMessageStream.prototype._writeHeadRequest = function() {
-  
+OutgoingHTTPMessageStream.prototype._writeHeadRequest = function () {
+
   var statusLine = this.context[IOPA.Method]
-    + ' ' 
-    + this.context[IOPA.Path] 
-    + ' ' 
-    + this.context[IOPA.Protocol] 
-    + CRLF;
-    
+    + ' ';
+
+  if (this.context[IOPA.Path] == "/*")
+    statusLine += "*"
+  else
+    statusLine += this.context[IOPA.Path];
+
+  statusLine += ' '
+  + this.context[IOPA.Protocol]
+  + CRLF;
+
   this._writeHeadCommon(statusLine);
 };
 

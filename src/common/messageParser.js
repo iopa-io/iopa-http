@@ -317,7 +317,12 @@ HTTPParser.prototype._parseRequestLine = function (line) {
     
   this.context[IOPA.Method] = method;
   var urlParsed = url.parse(match[2]);
-  this.context[IOPA.Path] = urlParsed.pathname;
+ 
+  if (urlParsed.pathname == "*") 
+    this.context[IOPA.Path] = "/*"
+  else
+   this.context[IOPA.Path] = urlParsed.pathname;
+   
   this.context[IOPA.PathBase] = "";
   this.context[IOPA.QueryString] = urlParsed.query;
   this.context[IOPA.Protocol] = match[3];
