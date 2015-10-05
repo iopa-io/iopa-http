@@ -32,8 +32,6 @@ const constants = iopa.constants,
     SERVER = constants.SERVER,
     HTTP = require('./constants.js').HTTP
 
-// const OutgoingHTTPMessageStream = require('./outgoingStream.js').OutgoingHTTPMessageStream;
-
 const util = require('util'),
     url = require('url'),
     assert = require('assert'),
@@ -149,7 +147,7 @@ HTTPParser.prototype._onHeadersComplete = function() {
     this.context[IOPA.Body] = new iopaStream.IncomingStream();
     
     var response = this.context.response;
-    response[IOPA.Body] = new iopaStream.OutgoingStream(); //new OutgoingHTTPMessageStream(response);
+    response[IOPA.Body] = new iopaStream.OutgoingStream(); 
     response[IOPA.StatusCode] = 200;
     response[IOPA.ReasonPhrase] = "OK";
     response[IOPA.Protocol] = this.context[IOPA.Protocol];
