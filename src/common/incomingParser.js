@@ -342,7 +342,7 @@ HTTPParser.prototype._parseResponseLine = function (line) {
     err.code = 'HPE_INVALID_CONSTANT';
     throw err;
   }
-
+  this.context[IOPA.Method] = null;
   this.context[IOPA.Protocol] = match[1];
   var statusCode = this.context[IOPA.StatusCode] = +match[2];
   this.context[IOPA.ReasonPhrase] = match[3];
