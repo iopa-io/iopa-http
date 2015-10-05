@@ -210,7 +210,7 @@ OutgoingHTTPMessageStream.prototype.write = function(chunk, encoding, callback) 
         len = chunk.length;
 
       if (this.context[SERVER.RawStream] && !this.context[SERVER.RawStream].corked) {
-        this.context[SERVER.RawStream].cork();
+     //   this.context[SERVER.RawStream].cork();
         process.nextTick(_streamUncorkNT, this.context[SERVER.RawStream]);
       }
       this._send(len.toString(16), 'binary', null);
@@ -236,7 +236,7 @@ OutgoingHTTPMessageStream.prototype.write = function(chunk, encoding, callback) 
  * @public
  */
 OutgoingHTTPMessageStream.prototype.end = function(data, encoding, callback) {
-  if (typeof data === 'function') {
+    if (typeof data === 'function') {
     callback = data;
     data = null;
   } else if (typeof encoding === 'function') {
@@ -511,7 +511,7 @@ OutgoingHTTPMessageStream.prototype._send = function (data, encoding, callback) 
 };
 
 OutgoingHTTPMessageStream.prototype._writeRaw = function(data, encoding, callback) {
-  if (typeof encoding === 'function') {
+   if (typeof encoding === 'function') {
     callback = encoding;
     encoding = null;
   }

@@ -46,13 +46,11 @@ describe('#HTTP Server()', function() {
 
     app.use(function (context, next) {
       context.log.info("[TEST] SERVER APP USE " + context["iopa.Method"] + " " + context["iopa.Path"]);
-
-       context.response["iopa.Body"].end("<HTML><HEAD></HEAD><BODY>Hello World</BODY>");
-        setTimeout(function () {
+  setTimeout(function () {
           events.emit("data", context);
         }, 40);
-     return next();
-
+      return context.response["iopa.Body"].endAsync("<HTML><HEAD></HEAD><BODY>Hello World</BODY>").then(next);
+      
    });
                                  
     server = IopaTCP.createServer(app.build());

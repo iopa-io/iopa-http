@@ -32,7 +32,7 @@ const constants = iopa.constants,
     SERVER = constants.SERVER,
     HTTP = require('./constants.js').HTTP
 
-const OutgoingHTTPMessageStream = require('./outgoingStream.js').OutgoingHTTPMessageStream;
+// const OutgoingHTTPMessageStream = require('./outgoingStream.js').OutgoingHTTPMessageStream;
 
 const util = require('util'),
     url = require('url'),
@@ -149,7 +149,7 @@ HTTPParser.prototype._onHeadersComplete = function() {
     this.context[IOPA.Body] = new iopaStream.IncomingStream();
     
     var response = this.context.response;
-    response[IOPA.Body] = new OutgoingHTTPMessageStream(response);
+    response[IOPA.Body] = new iopaStream.OutgoingStream(); //new OutgoingHTTPMessageStream(response);
     response[IOPA.StatusCode] = 200;
     response[IOPA.ReasonPhrase] = "OK";
     response[IOPA.Protocol] = this.context[IOPA.Protocol];
@@ -160,7 +160,7 @@ HTTPParser.prototype._onHeadersComplete = function() {
     {
      // PROCESS IMMEDIATELY
       this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = this.context;
-      response[IOPA.Body].on("finish",  this._onResponseComplete.bind(this))
+      response[IOPA.Body].on("end",  this._onResponseComplete.bind(this))
             
       if (this.context[SERVER.IsRequest])
         this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, this.context)
@@ -175,7 +175,8 @@ HTTPParser.prototype._onHeadersComplete = function() {
 }
 
 HTTPParser.prototype._onResponseComplete = function () {
-  var incoming = this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming;
+  process.nextTick((function(){
+     var incoming = this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming;
 
   if (incoming.length == 0) {
     this._channelContext[SERVER.RawStream].destroySoon();
@@ -189,6 +190,8 @@ HTTPParser.prototype._onResponseComplete = function () {
     this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context)
   else
     this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context)
+  }).bind(this));
+ 
 
 }
 

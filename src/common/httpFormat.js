@@ -104,15 +104,18 @@ module.exports.outboundWrite = function HTTPFormat_outboundWrite(context) {
  * @private
  */
 function _HttpFormat_outgoingComplete(channelContext, context_finished) {
-  channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = null;
-  
-  if (channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.length > 0) {
- 
-    var context_next = channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.shift();
-    module.exports.outboundWrite(context_next);
-    
+  process.nextTick(function () {
+    channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentOutgoing = null;
+
+    if (channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.length > 0) {
+
+      var context_next = channelContext[SERVER.Capabilities][HTTP.CAPABILITY].outgoing.shift();
+      module.exports.outboundWrite(context_next);
+
+      context_finished[SERVER.Capabilities][HTTP.CAPABILITY].resolve();
+    }
+
     context_finished[SERVER.Capabilities][HTTP.CAPABILITY].resolve();
-  }
-  
-    context_finished[SERVER.Capabilities][HTTP.CAPABILITY].resolve();
+  });
+
 }

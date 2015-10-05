@@ -32,8 +32,7 @@ app.use(IopaMessageLogger);
 app.use(IopaHTTP);
 
 app.use(function (context, next) {
-  context.response["iopa.Body"].end("<HTML><HEAD></HEAD><BODY>Hello World</BODY>");
-  return next();
+  return context.response["iopa.Body"].endAsync("<HTML><HEAD></HEAD><BODY>Hello World</BODY>").then(next);
 });
 
 var server = app.createServer("tcp:");
