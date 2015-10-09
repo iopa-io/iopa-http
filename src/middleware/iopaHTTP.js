@@ -43,7 +43,7 @@ function IopaHttp(app) {
  * channel method called for each inbound transport session channel
  * 
  * @method channel
- * @this DiscoveryServerIopaWire 
+ * @this IopaHttp 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
@@ -65,9 +65,7 @@ IopaHttp.prototype.channel = function IopaHttp_channel(channelContext, next) {
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
-    context.response[IOPA.Body].on("start", context[SERVER.Dispatch].bind(this, context.response));   
-   
-    context.response[IOPA.Body].on("start", IopaHttp_messageDefaults.bind(this, context.response));   
+    context.response[IOPA.Body].on("start", context.dispatch.bind(this, context.response));   
     return next()
 }
 
@@ -75,7 +73,7 @@ IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
  * connect method called for each outbound client.connect() channelContext creation
  * 
  * @method connect
- * @this DiscoveryServerIopaWire 
+ * @this IopaHttp 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
@@ -87,32 +85,30 @@ IopaHttp.prototype.connect = function IopaHttp_connect(channelContext, next) {
 /**
  * dispatch method called for each outbound context write
  * 
+ * @method create
+ * @this IopaHttp 
+ * @param context IOPA context properties dictionary
+ */
+IopaHttp.prototype.create = function IopaHttp_create(context, next) {
+   context[IOPA.Headers]['Cache-Control'] =  context.getHeader('cache-control') || HTTP.CACHE_CONTROL;
+   context[IOPA.Headers]['Server'] =  context.getHeader('server') || HTTP.SERVER;
+   return next();
+};
+
+/**
+ * dispatch method called for each outbound context write
+ * 
  * @method dispatch
- * @this DiscoveryServerIopaWire 
+ * @this IopaHttp 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.dispatch = function IopaHttp_dispatch(context, next) {
-    IopaHttp_messageDefaults(context);
     return next().then(function () {
        return httpFormat.outboundWrite(context);
      });
 };
 
-// PRIVATE METHODS
-
-/**
- * Private method to create message defaults for each new packet
- * 
- * @method IopaHttp_messageDefaults
- * @object ctx IOPA context dictionary
- * @private
- */
-function IopaHttp_messageDefaults(context) { 
-  context[IOPA.Headers]['Cache-Control'] =  context.getHeader('cache-control') || HTTP.CACHE_CONTROL;
-  context[IOPA.Headers]['Server'] =  context.getHeader('server') || HTTP.SERVER;
-};
- 
  // MODULE EXPORTS
  
  module.exports = IopaHttp;

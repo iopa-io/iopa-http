@@ -232,8 +232,8 @@ HTTPParser.prototype._createNewRequest = function () {
   response[SERVER.LocalAddress] = context[SERVER.LocalAddress];
   response[SERVER.LocalPort] = context[SERVER.LocalPort];
 
-  context[SERVER.Fetch] = parentContext[SERVER.Fetch];
-  context[SERVER.Dispatch] = parentContext[SERVER.Dispatch];
+  context.create = parentContext.create;
+  context.dispatch = parentContext.dispatch;
  
   return context;
 }

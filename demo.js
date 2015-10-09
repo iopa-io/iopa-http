@@ -40,7 +40,8 @@ server.listen()
   .then(function () {
       return server.connect("http://localhost:" + server["server.LocalPort"]);})
   .then(function(client) {
-      return client.send("/", "GET");})
+      return client.create("/", "GET").send();
+       })
   .then(function (response) {
       response["iopa.Body"].pipe(process.stdout);
       server.close();

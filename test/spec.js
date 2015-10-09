@@ -81,7 +81,7 @@ describe('#HTTP Server()', function() {
    });
 
    it('should GET ', function (done) {
-        httpClient.send("/projector")
+        httpClient.create("/projector").send()
        .then(function (response) {
          response.log.info("[TEST] /projector RESPONSE " + response["iopa.Body"].toString());
          response["iopa.StatusCode"].should.equal(200);
