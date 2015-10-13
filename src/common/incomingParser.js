@@ -224,7 +224,6 @@ HTTPParser.prototype._createNewRequest = function () {
   context[SERVER.LocalPort] = parentContext[SERVER.LocalPort];
   context[SERVER.RawStream] = parentContext[SERVER.RawStream];
   response[SERVER.RawStream] = parentResponse[SERVER.RawStream];
- 
 
   response[SERVER.TLS] = context[SERVER.TLS];
   response[SERVER.RemoteAddress] = context[SERVER.RemoteAddress];
@@ -233,7 +232,8 @@ HTTPParser.prototype._createNewRequest = function () {
   response[SERVER.LocalPort] = context[SERVER.LocalPort];
 
   context.create = parentContext.create;
-  context.dispatch = parentContext.dispatch;
+  context.dispatch = parentContext.dispatch.bind(this, context);
+  response.dispatch = parentContext.dispatch.bind(this, response);
  
   return context;
 }

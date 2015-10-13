@@ -65,7 +65,7 @@ IopaHttp.prototype.channel = function IopaHttp_channel(channelContext, next) {
  * @param next the next IOPA AppFunc in pipeline 
  */
 IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
-    context.response[IOPA.Body].on("start", context.dispatch.bind(this, context.response));   
+    context.response[IOPA.Body].on("start", context.response.dispatch);   
     return next()
 }
 
