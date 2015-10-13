@@ -92,6 +92,7 @@ IopaHttp.prototype.connect = function IopaHttp_connect(channelContext, next) {
 IopaHttp.prototype.create = function IopaHttp_create(context, next) {
    context[IOPA.Headers]['Cache-Control'] =  context.getHeader('cache-control') || HTTP.CACHE_CONTROL;
    context[IOPA.Headers]['Server'] =  context.getHeader('server') || HTTP.SERVER;
+   context[IOPA.Body] = new iopaStream.OutgoingMessageStream();
    return next();
 };
 
