@@ -3,11 +3,6 @@ language: node_js
 node_js:
   - 4.4.7
   
-notifications:
-     email:
-         on_success: change
-         on_failure: always
-
 env:
  global:
   - secure: x7HiAOHahpAPzowcSLSLY4cW/8NEIBgs+H/Zn7MoSTAbf5A9pfxcAcYaS81VOmATj0EwNaQ6B6lzFqls+0NimwH+kueLHQOZ4wYVpSkRKbZxngy2dspy5YCa6rszSuDIPKxCddJZ/dnbo0XWlhYXEpdJRpg6eUSbjd7UrYrmr/eHKQEuO71ZPuNAhIcKcJ5gDWwhTMX9sG71n6hcGcCT0s/VGW0ck7DJLDkL4jqyVr91igtWFHF64nx/iwSOExon8G+4gADEE+AH3WzGL7CY0qXzfuDh5ocyJvByUiFQvj8YCK1cZ8jGOWXeofZdhVwM3yM20pG9oX4JFvB+2mzDww==
