@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ * Copyright (c) 2016 Internet of Protocols Alliance (IOPA)
  * Portions Copyright Node.js contributors. 
  * See THIRDPARTY for details of original licenses.
  *
@@ -522,7 +522,7 @@ OutgoingHTTPMessageStream.prototype._writeRaw = function(data, encoding, callbac
     return true;
   }
 
-   if ( !this.context[IOPA.CancelToken].isCancelled ) {
+   if ( !this.context[SERVER.CancelToken].isCancelled ) {
      return this.context[SERVER.RawStream].write(data, encoding, callback);
   } else 
      return false;

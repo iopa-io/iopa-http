@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ * Copyright (c) 2016 Internet of Protocols Alliance (IOPA)
  * Portions Copyright Node.js contributors. 
  * Portions Copyright Tim Caswell and other contributors.
  * See THIRDPARTY for details of original licenses.
@@ -24,23 +24,23 @@
 // DECLARATIONS
 
 const iopa = require('iopa'),
-    factory = new iopa.Factory(),
-    iopaStream = require('iopa-common-stream');
+  factory = new iopa.Factory(),
+  iopaStream = require('iopa-common-stream');
 
 const constants = iopa.constants,
-    IOPA = constants.IOPA,
-    SERVER = constants.SERVER,
-    HTTP = require('./constants.js').HTTP
+  IOPA = constants.IOPA,
+  SERVER = constants.SERVER,
+  HTTP = require('./constants.js').HTTP
 
 const util = require('util'),
-    url = require('url'),
-    assert = require('assert'),
-    EventEmitter = require('events').EventEmitter;
-    
+  url = require('url'),
+  assert = require('assert'),
+  EventEmitter = require('events').EventEmitter;
+
 const maxHeaderSize = 80 * 1024;
 
 const HEADERSTATE = {
-  HTTP_LINE: true, 
+  HTTP_LINE: true,
   HEADER: true
 };
 
@@ -51,54 +51,53 @@ const STATEFINISHALLOWED = {
 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
- 
- /**
- * IOPA HTTPParser converts inbound HTTP requests and inbound HTTP responses into IOPA Request and Response contexts
- *
- * @class HTTPParser
- * @param channelContext (required) the transport context on which to parse the SERVER.RawStream message stream for one or more requests/responses;  typically TCP or UDP
- * @param context (optional) the IOPA Context on which to add the IOPA fields;  if blank new one(s) are created; optimization for non-session-oriented protocols such as UDP
- * @event IOPA.EVENTS.Request on channelContext[IOPA.Events]
- * @event IOPA.EVENTS.Response on channelContext[IOPA.Events]
- * @constructor
- * @public
- */
-function HTTPParser(channelContext, context) { 
+
+/**
+* IOPA HTTPParser converts inbound HTTP requests and inbound HTTP responses into IOPA Request and Response contexts
+*
+* @class HTTPParser
+* @param channelContext (required) the transport context on which to parse the SERVER.RawStream message stream for one or more requests/responses;  typically TCP or UDP
+* @param context (optional) the IOPA Context on which to add the IOPA fields;  if blank new one(s) are created; optimization for non-session-oriented protocols such as UDP
+* @event IOPA.EVENTS.Request on channelContext[IOPA.Events]
+* @event IOPA.EVENTS.Response on channelContext[IOPA.Events]
+* @constructor
+* @public
+*/
+function HTTPParser(channelContext, context) {
   _classCallCheck(this, HTTPParser);
- if (channelContext)
- {
+  if (channelContext) {
     this._channelContext = channelContext;
     channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming = [];
     channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = null;
- }
- 
+  }
+
   this.context = context || this._createNewRequest();
   this.context[HTTP.SkipBody] = false;
   this.context[HTTP.ShouldKeepAlive] = true;
-  this.context[IOPA.Trailers] =[];
-   
+  this.context[IOPA.Trailers] = [];
+
   this._state = 'HTTP_LINE';
   this._upgrade = false;
   this._line = '';
   this._isChunked = false;
   this._connection = '';
-  this._headerSize = 0; 
+  this._headerSize = 0;
   this._contentLength = null;
-  
-//  this._currentChunk;
-//  this._offset;
-//  this._end;
+
+  //  this._currentChunk;
+  //  this._offset;
+  //  this._end;
 }
 
 // PUBLIC METHODS
 
- /**
- * IOPA HTTPParser execute method called for each chunk in input stream
- *
- * @method execute
- * @param chunk the Node buffer containing the chunk to process; may contain partial, all or multiple HTTP messages
- * @public
- */
+/**
+* IOPA HTTPParser execute method called for each chunk in input stream
+*
+* @method execute
+* @param chunk the Node buffer containing the chunk to process; may contain partial, all or multiple HTTP messages
+* @public
+*/
 HTTPParser.prototype.execute = function (chunk) {
   _classCallCheck(this, HTTPParser);
   var start = 0;
@@ -107,13 +106,13 @@ HTTPParser.prototype.execute = function (chunk) {
   this._currentChunk = chunk;
   this._offset = start;
   var end = this._end = start + length;
-     while (this._offset < end) {
-      if (this[this._state]()) {
-        break;
-      }
+  while (this._offset < end) {
+    if (this[this._state]()) {
+      break;
     }
+  }
   this._currentChunk = null;
-  
+
   length = this._offset - start
   if (HEADERSTATE[this._state]) {
     this._headerSize += length;
@@ -132,109 +131,88 @@ HTTPParser.prototype.execute = function (chunk) {
  * @public
  */
 HTTPParser.prototype.finish = function () {
-   if (!STATEFINISHALLOWED[this._state]) {
+  if (!STATEFINISHALLOWED[this._state]) {
     throw new Error('invalid state for EOF');
   }
   if (this._state === 'BODY_RAW') {
-      this._onMessageComplete();
-    }
+    this._onMessageComplete();
+  }
 };
 
 // PRIVATE METHODS FOR MAJOR PARSING MILESTONES
 
-HTTPParser.prototype._onHeadersComplete = function() {
-    this.context[IOPA.Scheme] = this.context[IOPA.Scheme] || IOPA.SCHEMES.HTTP;
-    this.context[IOPA.Body] = new iopaStream.IncomingStream();
-    
-    var response = this.context.response;
-    response[IOPA.Body] = new iopaStream.OutgoingStream(); 
+HTTPParser.prototype._onHeadersComplete = function () {
+  this.context[IOPA.Scheme] = this.context[IOPA.Scheme] || IOPA.SCHEMES.HTTP;
+  this.context[IOPA.Body] = new iopaStream.IncomingStream();
+
+  if (this.context[SERVER.IsRequest]) {
+    var response = this.context.addResponse();
+    response[IOPA.Body] = new iopaStream.OutgoingStream();
     response[IOPA.StatusCode] = 200;
     response[IOPA.ReasonPhrase] = "OK";
     response[IOPA.Protocol] = this.context[IOPA.Protocol];
     response[IOPA.Scheme] = this.context[IOPA.Scheme];
     response[HTTP.ShouldKeepAlive] = this.context[HTTP.ShouldKeepAlive];
-      
-    if (this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming == null)
-    {
-     // PROCESS IMMEDIATELY
-      this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = this.context;
-      response[IOPA.Body].on("end",  this._onResponseComplete.bind(this))
-            
-      if (this.context[SERVER.IsRequest])
-        this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, this.context)
-      else
-        this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, this.context)
-    } else{
-      // CACHE PROCESSING UNTIL CURRENT MESSAGE IS DONE
-       this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming.push(this.context);
-    }
-       
-    return false;
+  }
+
+  if (this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming == null) {
+    // PROCESS IMMEDIATELY
+    this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = this.context;
+   
+     if (this.context[SERVER.IsRequest]) {
+         response[IOPA.Body].on("end", this._onResponseComplete.bind(this))
+     }
+
+    if (this.context[SERVER.IsRequest])
+      this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, this.context)
+    else
+      this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, this.context)
+  } else {
+    // CACHE PROCESSING UNTIL CURRENT MESSAGE IS DONE
+    this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming.push(this.context);
+  }
+
+  return false;
 }
 
 HTTPParser.prototype._onResponseComplete = function () {
-  process.nextTick((function(){
-     var incoming = this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming;
+  process.nextTick((function () {
+    var incoming = this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].incoming;
 
-  if (incoming.length == 0) {
-    this._channelContext[SERVER.RawStream].destroySoon();
-    return;
-  }
+    if (incoming.length == 0) {
+      this._channelContext[SERVER.RawStream].destroySoon();
+      return;
+    }
 
-  var context = incoming.shift();
-  this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = context;
+    var context = incoming.shift();
+    this._channelContext[SERVER.Capabilities][HTTP.CAPABILITY].currentIncoming = context;
 
-  if (context[SERVER.IsRequest])
-    this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context)
-  else
-    this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context)
-  }).bind(this));
- 
+    if (context[SERVER.IsRequest])
+      this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context)
+    else
+      this._channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context)
+  }.bind(this)));
+
 
 }
 
-HTTPParser.prototype._onBody = function(chunk, offset, length) {
-     this.context[IOPA.Body].append(chunk.slice(offset, offset+length));
+HTTPParser.prototype._onBody = function (chunk, offset, length) {
+  this.context[IOPA.Body].append(chunk.slice(offset, offset + length));
 }
 
-HTTPParser.prototype._onMessageComplete = function(result) {
-   this.context[IOPA.Body].close();
-   }
+HTTPParser.prototype._onMessageComplete = function (result) {
+  this.context[IOPA.Body].close();
+}
 
 
 // PRIVATE HELPER METHODS
 
 HTTPParser.prototype._createNewRequest = function () {
   var parentContext = this._channelContext;
-  var parentResponse = parentContext.response;
+  var parentResponse = parentContext.response || null;
+
+  var context = parentContext.create(null, {[SERVER.IsLocalOrigin]: false});
   
-  var context = parentContext[SERVER.Factory].createContext();
-  var response = context.response;
-
-  parentContext[SERVER.Factory].mergeCapabilities(context, parentContext);
-
-  context[SERVER.SessionId] = parentResponse[SERVER.SessionId];
-  context[SERVER.TLS] = parentContext[SERVER.TLS];
-
-  context[SERVER.IsLocalOrigin] = false;
-
-  context[SERVER.RemoteAddress] = parentContext[SERVER.RemoteAddress];
-  context[SERVER.RemotePort] = parentContext[SERVER.RemotePort];
-  context[SERVER.LocalAddress] = parentContext[SERVER.LocalAddress];
-  context[SERVER.LocalPort] = parentContext[SERVER.LocalPort];
-  context[SERVER.RawStream] = parentContext[SERVER.RawStream];
-  response[SERVER.RawStream] = parentResponse[SERVER.RawStream];
-
-  response[SERVER.TLS] = context[SERVER.TLS];
-  response[SERVER.RemoteAddress] = context[SERVER.RemoteAddress];
-  response[SERVER.RemotePort] = context[SERVER.RemotePort];
-  response[SERVER.LocalAddress] = context[SERVER.LocalAddress];
-  response[SERVER.LocalPort] = context[SERVER.LocalPort];
-
-  context.create = parentContext.create;
-  context.dispatch = parentContext.dispatch.bind(this, context);
-  response.dispatch = parentContext.dispatch.bind(this, response);
- 
   return context;
 }
 
@@ -249,7 +227,7 @@ HTTPParser.prototype._nextRequest = function () {
 
 HTTPParser.prototype._consumeLine = function () {
   var end = this._end,
-      chunk = this._currentChunk;
+    chunk = this._currentChunk;
   for (var i = this._offset; i < end; i++) {
     if (chunk[i] === 0x0a) { // \n
       var line = this._line + chunk.toString('ascii', this._offset, i);
@@ -286,16 +264,16 @@ HTTPParser.prototype._shouldKeepAlive = function () {
 
 var httpHeader = /HTTP\/\d{1}\.\d{1} \d+ .*/
 HTTPParser.prototype.HTTP_LINE = function () {
-    var line = this._consumeLine();
-    if (line === undefined) {
-        return;
-    }
-    
-     if (httpHeader.test(line)) {
-            this._parseResponseLine(line)
-        } else {
-            this._parseRequestLine(line)
-        }
+  var line = this._consumeLine();
+  if (line === undefined) {
+    return;
+  }
+
+  if (httpHeader.test(line)) {
+    this._parseResponseLine(line)
+  } else {
+    this._parseRequestLine(line)
+  }
 };
 
 var requestExp = /^([A-Z-]+) ([^ ]+) (HTTP\/\d\.\d)$/;
@@ -306,30 +284,30 @@ HTTPParser.prototype._parseRequestLine = function (line) {
     err.code = 'HPE_INVALID_CONSTANT';
     throw err;
   }
-  
-  var method =  match[1];
-  
+
+  var method = match[1];
+
   if (HTTP.METHODS.indexOf(method) === -1) {
     throw new Error('invalid request method');
   }
-  
-  if (method  === 'CONNECT') {
+
+  if (method === 'CONNECT') {
     this._upgrade = true;
   }
-    
+
   this.context[IOPA.Method] = method;
   var urlParsed = url.parse(match[2]);
- 
-  if (urlParsed.pathname == "*") 
+
+  if (urlParsed.pathname == "*")
     this.context[IOPA.Path] = "/*"
   else
-   this.context[IOPA.Path] = urlParsed.pathname;
-   
+    this.context[IOPA.Path] = urlParsed.pathname;
+
   this.context[IOPA.PathBase] = "";
   this.context[IOPA.QueryString] = urlParsed.query;
   this.context[IOPA.Protocol] = match[3];
   this.context[SERVER.IsRequest] = true;
-   
+
   this._contentLength = 0;
   this._state = 'HEADER';
 };
@@ -346,12 +324,12 @@ HTTPParser.prototype._parseResponseLine = function (line) {
   this.context[IOPA.Protocol] = match[1];
   var statusCode = this.context[IOPA.StatusCode] = +match[2];
   this.context[IOPA.ReasonPhrase] = match[3];
- 
+
   if ((statusCode / 100 | 0) === 1 || statusCode === 204 || statusCode === 304) {
     this._contentLength = 0;
   }
- this.context[SERVER.IsRequest] = false;
- 
+  this.context[SERVER.IsRequest] = false;
+
   this._state = 'HEADER';
 };
 
@@ -383,11 +361,11 @@ HTTPParser.prototype.HEADER = function () {
         }
       }
     }
-    
+
     this.context[HTTP.ShouldKeepAlive] = this._shouldKeepAlive();
 
     var skipBody = this._onHeadersComplete();
-    
+
     if (this._upgrade) {
       this._nextRequest();
       return true;
@@ -426,7 +404,7 @@ HTTPParser.prototype._parseHeader = function (line, headers) {
       headers[k] += matchContinue[1];
     }
   }
-};     
+};
 
 HTTPParser.prototype.BODY_CHUNKHEAD = function () {
   var line = this._consumeLine();
@@ -491,7 +469,7 @@ HTTPParser.prototype.BODY_SIZED = function () {
   }
 };
 
- 
- // MODULE EXPORTS
+
+// MODULE EXPORTS
 
 module.exports = HTTPParser;

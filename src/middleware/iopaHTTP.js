@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ * Copyright (c) 2016 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,56 +17,54 @@
 const iopa = require('iopa'),
   iopaStream = require('iopa-common-stream'),
   httpFormat = require('../common/httpFormat')
-  
+
 const constants = iopa.constants,
   IOPA = constants.IOPA,
   SERVER = constants.SERVER,
   HTTP = require('../common/constants.js').HTTP
 
 const packageVersion = require('../../package.json').version;
- 
- /**
- * IOPA Middleware for Hypertext Transfer Protocol (HTTP) protocol
- *
- * @class IopaHttp
- * @this app.properties  the IOPA AppBuilder Properties Dictionary, used to add server.capabilities
- * @constructor
- * @public
- */
+
+/**
+* IOPA Middleware for Hypertext Transfer Protocol (HTTP) protocol
+*
+* @class IopaHttp
+* @this app.properties  the IOPA AppBuilder Properties Dictionary, used to add server.capabilities
+* @constructor
+* @public
+*/
 function IopaHttp(app) {
-    app.properties[SERVER.Capabilities][HTTP.CAPABILITY] = {};
-    app.properties[SERVER.Capabilities][HTTP.CAPABILITY][SERVER.Version] = packageVersion;
-    app.properties[SERVER.Capabilities][HTTP.CAPABILITY][IOPA.Protocol] = HTTP.PROTOCOLVERSION;
- }
+  app.properties[SERVER.Capabilities][HTTP.CAPABILITY] = {};
+  app.properties[SERVER.Capabilities][HTTP.CAPABILITY][SERVER.Version] = packageVersion;
+  app.properties[SERVER.Capabilities][HTTP.CAPABILITY][IOPA.Protocol] = HTTP.PROTOCOLVERSION;
+
+  this.app = app;
+}
 
 /**
  * channel method called for each inbound transport session channel
  * 
- * @method channel
+ * @method invoke
  * @this IopaHttp 
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
-IopaHttp.prototype.channel = function IopaHttp_channel(channelContext, next) {
-    channelContext[IOPA.Events].on(IOPA.EVENTS.Request, function(context){
-         context.using(next.invoke);
-     })
-         
-      return next()
-         .then(httpFormat.inboundParseMonitor.bind(this, channelContext, null))
-}
+IopaHttp.prototype.invoke = function IopaHttp_invoke(channelContext, next) {
 
-/**
- * channel method called for each inbound message
- * 
- * @method invoke
- * @this DiscoveryServerIopaWire 
- * @param context IOPA context properties dictionary
- * @param next the next IOPA AppFunc in pipeline 
- */
-IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
-    context.response[IOPA.Body].on("start", context.response.dispatch);   
-    return next()
+  return new Promise(function (resolve, reject) {
+    channelContext[IOPA.Events].on(IOPA.EVENTS.Request, function (context) {
+      context.response[IOPA.Headers]['Cache-Control'] = HTTP.CACHE_CONTROL;
+      context.response[IOPA.Headers]['Server'] = HTTP.SERVER;
+      context.response[IOPA.Body].on("start", function () {
+        httpFormat.outboundWrite(context.response);
+      });
+      context.using(next.invoke);
+    })
+
+    channelContext[IOPA.Events].on("close", resolve);
+
+    httpFormat.inboundParseMonitor(channelContext, null);
+  });
 }
 
 /**
@@ -77,40 +75,38 @@ IopaHttp.prototype.invoke = function IopaHttp_invoke(context, next) {
  * @param context IOPA context properties dictionary
  * @param next the next IOPA AppFunc in pipeline 
  */
-IopaHttp.prototype.connect = function IopaHttp_connect(channelContext, next) {
-   httpFormat.inboundParseMonitor(channelContext, null);  
-  return next();
+IopaHttp.prototype.dispatch = function IopaHttp_dispatch(channelContext, next) {
+  channelContext.create = this.create.bind(this, channelContext, channelContext.create);
+  
+  return next().then(function () {
+    httpFormat.inboundParseMonitor(channelContext, null);
+    return channelContext;
+  })
 };
 
 /**
- * dispatch method called for each outbound context write
- * 
+ * Creates a new IOPA Context that is a child request/response of a parent Context
+ *
  * @method create
- * @this IopaHttp 
- * @param context IOPA context properties dictionary
+ *
+ * @param parentContext IOPA Context for parent
+ * @param next IOPA application delegate for the remainder of the createContext pipeline
+ * @param url string representation of /hello
+ * @param options object 
+ * @returns context
+ * @public
  */
-IopaHttp.prototype.create = function IopaHttp_create(context, next) {
-   context[IOPA.Headers]['Cache-Control'] =  context.getHeader('cache-control') || HTTP.CACHE_CONTROL;
-   context[IOPA.Headers]['Server'] =  context.getHeader('server') || HTTP.SERVER;
-   context[IOPA.Body] = new iopaStream.OutgoingMessageStream();
-   return next();
+IopaHttp.prototype.create = function IopaHttp_create(parentContext, next, url, options) {
+  var context = next(url, options);
+  context[SERVER.IsRequest] = true;
+  context[IOPA.Method] = "GET";
+  context[IOPA.Headers]['Cache-Control'] = HTTP.CACHE_CONTROL;
+  context[IOPA.Headers]['Server'] = HTTP.SERVER;
+  context[IOPA.Body] = new iopaStream.OutgoingMessageStream();
+  context[IOPA.Body].on("start", function () {
+    return httpFormat.outboundWrite(context);
+  });
+  return context;
 };
 
-/**
- * dispatch method called for each outbound context write
- * 
- * @method dispatch
- * @this IopaHttp 
- * @param context IOPA context properties dictionary
- * @param next the next IOPA AppFunc in pipeline 
- */
-IopaHttp.prototype.dispatch = function IopaHttp_dispatch(context, next) {
-    return next().then(function () {
-       return httpFormat.outboundWrite(context);
-     });
-};
-
- // MODULE EXPORTS
- 
- module.exports = IopaHttp;
- 
+module.exports = IopaHttp;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ * Copyright (c) 2016 Internet of Protocols Alliance (IOPA)
  * Portions Copyright Node.js contributors. 
  * Portions Copyright Tim Caswell and other contributors.
  * See THIRDPARTY for details of original licenses.

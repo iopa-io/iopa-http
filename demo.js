@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ * Copyright (c) 2016 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ const IopaTCP =  require('iopa-tcp'),
   
 var app = new iopa.App();
 app.use(IopaTCP);
-app.use(IopaMessageLogger);
 app.use(IopaHTTP);
+app.use(IopaMessageLogger);
 
 app.use(function (context, next) {
   return context.response["iopa.Body"].endAsync("<HTML><HEAD></HEAD><BODY>Hello World</BODY>").then(next);
@@ -38,7 +38,8 @@ app.use(function (context, next) {
 var server = app.createServer("tcp:");
 server.listen()
   .then(function () {
-      return server.connect("http://localhost:" + server["server.LocalPort"]);})
+     console.log("Server is listening on port " + server.port);
+     return server.connect("http://localhost:" + server.port);})
   .then(function(client) {
       return client.create("/", "GET").send();
        })
